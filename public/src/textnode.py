@@ -1,6 +1,6 @@
 from enum import Enum
 
-class NodeType(Enum):
+class TextType(Enum):
     HTML = "html"
     BOLD = "bold"
     TEXT = "text"
@@ -10,7 +10,7 @@ class NodeType(Enum):
     IMAGE = "image"
 
 class TextNode:
-    def __init__(self, text, text_type=NodeType.TEXT, url=None):
+    def __init__(self, text, text_type=TextType.TEXT, url=None):
         self.text = text
         self.text_type = text_type.value
         self.url = url
