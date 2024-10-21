@@ -1,7 +1,7 @@
 import unittest
 from textnode import *
 from leafnode import *
-from main import textnode_to_htmlnode  # Assuming this is where your function is
+from main import *
 
 class TestTextNodeToHtmlNode(unittest.TestCase):
 
