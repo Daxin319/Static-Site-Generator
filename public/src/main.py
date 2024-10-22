@@ -1,7 +1,6 @@
 from textnode import *
 from parentnode import *
 from leafnode import *
-from htmlnode import *
 
 def main():
     link_node = TextNode("Click me!", TextType.LINK, "https://www.boot.dev")
