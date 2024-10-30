@@ -63,8 +63,3 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 if node.text[second_pos + len(delimiter):]:
                     new_nodes.extend(split_nodes_delimiter([TextNode(node.text[second_pos + len(delimiter):])], delimiter, text_type))
     return new_nodes
-                
-            
-
-debug_node = TextNode("This line has a `code block` section.")
-split_nodes_delimiter([debug_node], '`', TextType.CODE)

@@ -6,6 +6,7 @@ class LeafNode(HTMLNode):
             raise ValueError
         super().__init__(tag, value, None, props)
 
+    #function to convert leafnode to html format
     def to_html(self):
         if not self.tag:
             return str(self.value)

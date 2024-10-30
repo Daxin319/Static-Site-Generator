@@ -9,6 +9,7 @@ class HTMLNode():
         raise NotImplementedError
         #children will overwrite this method
 
+    #function to convert properties attribute to proper html format
     def props_to_html(self):
         html_string = ""
         for key in self.props:
