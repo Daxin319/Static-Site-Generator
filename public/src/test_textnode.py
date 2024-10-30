@@ -87,5 +87,85 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         
         self.assertEqual(result, [non_text_node])
 
+    def test_multiple_delimiters_bold_italic(self):
+        # Test both bold (*) and italic (_) delimiters in one node, without nesting
+        nodes = [TextNode("This is *bold* and _italic_ text.", TextType.TEXT)]
+        
+        # Split bold first, then italic
+        result = split_nodes_delimiter(nodes, "*", TextType.BOLD)
+        result = split_nodes_delimiter(result, "_", TextType.ITALIC)
+        
+        expected = [
+            TextNode("This is "),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" and "),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" text.")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_code_and_bold_delimiters(self):
+        # Test both code (`) and bold (*) delimiters in one node, without nesting
+        nodes = [TextNode("Sample *bold* and `code` here.", TextType.TEXT)]
+        
+        # Split bold first, then code
+        result = split_nodes_delimiter(nodes, "*", TextType.BOLD)
+        result = split_nodes_delimiter(result, "`", TextType.CODE)
+        
+        expected = [
+            TextNode("Sample "),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" and "),
+            TextNode("code", TextType.CODE),
+            TextNode(" here.")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_italic_code_bold_order(self):
+        # Test sequence of italic, code, and bold delimiters without nesting
+        nodes = [TextNode("Try _italic_ `code` and *bold*.", TextType.TEXT)]
+        
+        # Split italic, then code, then bold
+        result = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
+        result = split_nodes_delimiter(result, "`", TextType.CODE)
+        result = split_nodes_delimiter(result, "*", TextType.BOLD)
+        
+        expected = [
+            TextNode("Try "),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" "),
+            TextNode("code", TextType.CODE),
+            TextNode(" and "),
+            TextNode("bold", TextType.BOLD),
+            TextNode(".")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_single_delimiter_with_text_only(self):
+        # Test a single delimiter of each type in separate text to confirm splitting
+        nodes = [
+            TextNode("Single *bold* example.", TextType.TEXT),
+            TextNode("Single _italic_ example.", TextType.TEXT),
+            TextNode("Single `code` example.", TextType.TEXT)
+        ]
+        
+        # Apply each delimiter type in sequence
+        result = split_nodes_delimiter(nodes, "*", TextType.BOLD)
+        result = split_nodes_delimiter(result, "_", TextType.ITALIC)
+        result = split_nodes_delimiter(result, "`", TextType.CODE)
+        
+        expected = [
+            TextNode("Single "),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" example."),
+            TextNode("Single "),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" example."),
+            TextNode("Single "),
+            TextNode("code", TextType.CODE),
+            TextNode(" example.")
+        ]
+        self.assertEqual(result, expected)
+
 if __name__ == "__main__":
     unittest.main()
