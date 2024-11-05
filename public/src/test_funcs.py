@@ -206,5 +206,128 @@ class TestFuncs(unittest.TestCase):
         self.assertEqual(image_result, expected_images)
         self.assertEqual(link_result, expected_links)
 
+    def test_split_nodes_image_single_image(self):
+        # Test a single image within a node
+        nodes = [TextNode("Here is an image ![alt text](https://example.com/image.jpg)")]
+        result = split_nodes_image(nodes)
+        
+        expected = [
+            TextNode("Here is an image "),
+            TextNode("![alt text](https://example.com/image.jpg)", TextType.IMAGE)
+        ]
+        self.assertEqual(result, expected)
+
+    def test_split_nodes_image_multiple_images(self):
+        # Test multiple images within a node
+        nodes = [TextNode("Image one ![img1](https://example.com/1.jpg) and image two ![img2](https://example.com/2.jpg)")]
+        result = split_nodes_image(nodes)
+        
+        expected = [
+            TextNode("Image one "),
+            TextNode("![img1](https://example.com/1.jpg)", TextType.IMAGE),
+            TextNode(" and image two "),
+            TextNode("![img2](https://example.com/2.jpg)", TextType.IMAGE)
+        ]
+        self.assertEqual(result, expected)
+
+    def test_split_nodes_image_no_images(self):
+        # Test text with no images
+        nodes = [TextNode("This text has no images.")]
+        result = split_nodes_image(nodes)
+        
+        expected = [
+            TextNode("This text has no images.")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_split_nodes_link_single_link(self):
+        # Test a single link within a node
+        nodes = [TextNode("This is a [link](https://example.com).")]
+        result = split_nodes_link(nodes)
+        
+        expected = [
+            TextNode("This is a "),
+            TextNode("[link](https://example.com)", TextType.LINK),
+            TextNode(".")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_split_nodes_link_multiple_links(self):
+        # Test multiple links within a node
+        nodes = [TextNode("First [link1](https://example.com/1) and second [link2](https://example.com/2)")]
+        result = split_nodes_link(nodes)
+        
+        expected = [
+            TextNode("First "),
+            TextNode("[link1](https://example.com/1)", TextType.LINK),
+            TextNode(" and second "),
+            TextNode("[link2](https://example.com/2)", TextType.LINK)
+        ]
+        self.assertEqual(result, expected)
+
+    def test_split_nodes_link_no_links(self):
+        # Test text with no links
+        nodes = [TextNode("This text has no links.")]
+        result = split_nodes_link(nodes)
+        
+        expected = [
+            TextNode("This text has no links.")
+        ]
+        self.assertEqual(result, expected)
+    
+    def test_split_nodes_image_and_link_combined(self):
+        # Test node with both images and links
+        nodes = [TextNode("Here is an image ![img](https://example.com/image.jpg) and a [link](https://example.com).")]
+        
+        result_images = split_nodes_image(nodes)
+        result_links = split_nodes_link(result_images)
+        
+        expected = [
+            TextNode("Here is an image "),
+            TextNode("![img](https://example.com/image.jpg)", TextType.IMAGE),
+            TextNode(" and a "),
+            TextNode("[link](https://example.com)", TextType.LINK),
+            TextNode(".")
+        ]
+        self.assertEqual(result_links, expected)
+        
+    def test_split_nodes_image_empty_alt_text_exception(self):
+        # Test image with an empty alt text should raise an exception
+        nodes = [TextNode("Image with no alt text ![](https://example.com/image.jpg)")]
+        with self.assertRaises(Exception) as context:
+            split_nodes_image(nodes)
+        self.assertEqual(str(context.exception), '<----------------Alt Text is empty---------------->')
+
+    def test_split_nodes_image_empty_url_exception(self):
+        # Test image with an empty URL should raise an exception
+        nodes = [TextNode("Image with empty URL ![alt text]()")]
+        with self.assertRaises(Exception) as context:
+            split_nodes_image(nodes)
+        self.assertEqual(str(context.exception), '<----------------No URL Detected---------------->')
+
+    def test_split_nodes_link_empty_link_text_exception(self):
+        # Test link with an empty link text should raise an exception
+        nodes = [TextNode("Link with no text []()")]
+        with self.assertRaises(Exception) as context:
+            split_nodes_link(nodes)
+        self.assertEqual(str(context.exception), '<----------------Link is empty---------------->')
+
+    def test_split_nodes_link_empty_url_exception(self):
+        # Test link with an empty URL should raise an exception
+        nodes = [TextNode("Link with empty URL [link]()")]
+        with self.assertRaises(Exception) as context:
+            split_nodes_link(nodes)
+        self.assertEqual(str(context.exception), '<----------------No URL Detected---------------->')
+
+    def test_split_nodes_image_and_link_no_exceptions_for_valid_input(self):
+        # Test valid images and links to ensure no exceptions are raised
+        nodes = [TextNode("Valid image ![alt](https://example.com/image.jpg) and link [link](https://example.com).")]
+        try:
+            result_images = split_nodes_image(nodes)
+            result_links = split_nodes_link(result_images)
+            self.assertIsInstance(result_links, list)  # Ensure it returns a list
+        except Exception as e:
+            self.fail(f"An exception was raised for valid input: {e}")
+
 if __name__ == '__main__':
     unittest.main()

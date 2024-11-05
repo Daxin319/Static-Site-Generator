@@ -33,13 +33,54 @@ def extract_markdown_links(text):
 
 #function to split image nodes
 def split_nodes_image(old_nodes):
-    pass
+    new_nodes = []
+    for node in old_nodes:
+        list = extract_markdown_images(node.text)
+        if len(list) == 0:
+            new_nodes.append(node)
+        else:
+            for item in list:
+                alt_text = item[0]
+                url = item[1]
+                if len(alt_text) == 0:
+                    raise Exception('<----------------Alt Text is empty---------------->')
+                if len(url) == 0:
+                    raise Exception('<----------------No URL Detected---------------->')
+                split_text = node.text.split(f'![{alt_text}]({url})', 1)
+                new_nodes.append(TextNode(split_text[0]))
+                new_nodes.append(TextNode(f'![{alt_text}]({url})', TextType.IMAGE))
+                node.text = split_text[1]
+            if len(node.text) != 0:
+                new_nodes.append(TextNode(node.text)) 
+    return new_nodes
 
 #function to split link nodes
 def split_nodes_link(old_nodes):
     new_nodes = []
     for node in old_nodes:
-        if len(extract_markdown_links(node)) == 0:
+        list = extract_markdown_links(node.text)
+        if len(list) == 0:
             new_nodes.append(node)
         else:
-           
+            for item in list:
+                link = item[0]
+                url = item[1]
+                if len(link) == 0:
+                    raise Exception('<----------------Link is empty---------------->')
+                if len(url) == 0:
+                    raise Exception('<----------------No URL Detected---------------->')
+                split_text = node.text.split(f'[{link}]({url})', 1)
+                new_nodes.append(TextNode(split_text[0]))
+                new_nodes.append(TextNode(f'[{link}]({url})', TextType.LINK))
+                node.text = split_text[1]
+            if len(node.text) != 0:
+                new_nodes.append(TextNode(node.text))        
+    return new_nodes
+                   
+
+node = TextNode(
+    "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
+    TextType.TEXT,
+)
+new_nodes = split_nodes_link([node])
+print(new_nodes)
