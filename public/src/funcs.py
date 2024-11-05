@@ -101,3 +101,33 @@ def markdown_to_blocks(markdown):
                 new_list.append(stripped_line)
         return new_list
     raise Exception("<----------Empty document inputted---------->")
+
+# This funciton takes an input of a single block of markdown text and returns a string describing  the type of block it is
+def block_to_block_type(markdown):
+    is_heading = re.search(r"^#{1,6}\s", markdown)
+    is_code = re.search(r"(^`{3})[\s\S]*(`{3}$)", markdown)
+    is_quote = re.search(r"^>", markdown, flags= re.MULTILINE)
+    is_unordered_list1 = re.search(r"^\*\s", markdown, flags= re.MULTILINE)
+    is_unordered_list2 = re.search(r"^-\s", markdown, flags= re.MULTILINE)
+    is_ordered_list = re.search(r"^(\d+)\.\s+", markdown, flags= re.MULTILINE)
+
+    if is_heading:
+        return "heading"
+    if is_code:
+        return "code"
+    if is_quote:
+        return "quote"
+    if is_unordered_list1 or is_unordered_list2:
+        return "unordered_list"
+    if is_ordered_list:
+        split_text = markdown.split('\n')
+        current_index = 0
+        for line in split_text:
+            match = re.match(r"^(\d+)\.\s+", line)
+            if match:
+                num = match.group(1)
+                if int(num) != current_index + 1:
+                    return "paragraph"
+                current_index += 1
+        return "ordered_list"
+    return "paragraph"

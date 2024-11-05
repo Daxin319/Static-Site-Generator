@@ -545,5 +545,38 @@ This is a paragraph with a [link](https://example.com) and an image ![alt text](
         self.assertEqual(result, expected)
 
 
+    def test_heading(self):
+        self.assertEqual(block_to_block_type("# Heading 1"), "heading")
+        self.assertEqual(block_to_block_type("###### Heading 6"), "heading")
+        self.assertEqual(block_to_block_type("#### Mid-Level Heading"), "heading")
+
+    def test_code_block(self):
+        self.assertEqual(block_to_block_type("```\nprint('Hello World')\n```"), "code")
+        self.assertEqual(block_to_block_type("```\nint x = 5;\nint y = 10;\n```"), "code")
+
+    def test_quote_block(self):
+        self.assertEqual(block_to_block_type("> This is a quote\n> with multiple lines"), "quote")
+        self.assertEqual(block_to_block_type("> Single line quote"), "quote")
+
+    def test_unordered_list(self):
+        self.assertEqual(block_to_block_type("* Item 1\n* Item 2\n* Item 3"), "unordered_list")
+        self.assertEqual(block_to_block_type("- Item 1\n- Item 2\n- Item 3"), "unordered_list")
+        self.assertEqual(block_to_block_type("* Mixed types\n- still unordered"), "unordered_list")
+
+    def test_ordered_list(self):
+        self.assertEqual(block_to_block_type("1. First item\n2. Second item\n3. Third item"), "ordered_list")
+        self.assertEqual(block_to_block_type("1. Step one\n2. Step two\n3. Step three"), "ordered_list")
+
+    def test_invalid_ordered_list(self):
+        # Not starting at 1
+        self.assertEqual(block_to_block_type("2. Wrong start\n3. Skipped one"), "paragraph")
+        # Incorrectly incremented numbers
+        self.assertEqual(block_to_block_type("1. Right start\n3. Skips second\n4. Wrong sequence"), "paragraph")
+
+    def test_paragraph(self):
+        self.assertEqual(block_to_block_type("This is a regular paragraph of text."), "paragraph")
+        self.assertEqual(block_to_block_type("No special formatting here.\nJust a normal block of text."), "paragraph")
+
+        
 if __name__ == '__main__':
     unittest.main()
