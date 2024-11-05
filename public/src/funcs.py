@@ -76,11 +76,13 @@ def split_nodes_link(old_nodes):
             if len(node.text) != 0:
                 new_nodes.append(TextNode(node.text))        
     return new_nodes
-                   
 
-node = TextNode(
-    "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
-    TextType.TEXT,
-)
-new_nodes = split_nodes_link([node])
-print(new_nodes)
+# This function takes raw markdown text and converts it into a list of textnodes
+def text_to_textnodes(text):
+    node = TextNode(text)
+    links = split_nodes_link([node])
+    images = split_nodes_image(links)
+    code = split_nodes_delimiter(images, '`', TextType.CODE)
+    bold = split_nodes_delimiter(code, '**', TextType.BOLD)
+    italic = split_nodes_delimiter(bold, '*', TextType.ITALIC)
+    return italic

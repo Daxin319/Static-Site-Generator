@@ -290,7 +290,7 @@ class TestFuncs(unittest.TestCase):
             TextNode(".")
         ]
         self.assertEqual(result_links, expected)
-        
+
     def test_split_nodes_image_empty_alt_text_exception(self):
         # Test image with an empty alt text should raise an exception
         nodes = [TextNode("Image with no alt text ![](https://example.com/image.jpg)")]
@@ -328,6 +328,79 @@ class TestFuncs(unittest.TestCase):
             self.assertIsInstance(result_links, list)  # Ensure it returns a list
         except Exception as e:
             self.fail(f"An exception was raised for valid input: {e}")
+
+    def test_text_with_plain_text(self):
+        # Test plain text without any formatting
+        result = text_to_textnodes("This is plain text.")
+        expected = [TextNode("This is plain text.")]
+        self.assertEqual(result, expected)
+
+    def test_text_with_single_link(self):
+        # Test text with a single markdown link
+        result = text_to_textnodes("Here is a [link](https://example.com).")
+        expected = [
+            TextNode("Here is a "),
+            TextNode("[link](https://example.com)", TextType.LINK),
+            TextNode(".")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_text_with_single_image(self):
+        # Test text with a single markdown image
+        result = text_to_textnodes("Here is an image ![alt](https://example.com/image.jpg).")
+        expected = [
+            TextNode("Here is an image "),
+            TextNode("![alt](https://example.com/image.jpg)", TextType.IMAGE),
+            TextNode(".")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_text_with_bold_and_italic(self):
+        # Test text with bold and italic separately
+        result = text_to_textnodes("This is **bold** and *italic* text.")
+        expected = [
+            TextNode("This is "),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" and "),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" text.")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_text_with_inline_code(self):
+        # Test text with inline code
+        result = text_to_textnodes("Here is `inline code`.")
+        expected = [
+            TextNode("Here is "),
+            TextNode("inline code", TextType.CODE),
+            TextNode(".")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_text_with_multiple_formatting_no_nesting(self):
+        # Test text with multiple formats, no nesting
+        result = text_to_textnodes("This includes **bold**, *italic*, `code`, [link](https://example.com), and an image ![alt](https://example.com/image.jpg).")
+        expected = [
+            TextNode("This includes "),
+            TextNode("bold", TextType.BOLD),
+            TextNode(", "),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(", "),
+            TextNode("code", TextType.CODE),
+            TextNode(", "),
+            TextNode("[link](https://example.com)", TextType.LINK),
+            TextNode(", and an image "),
+            TextNode("![alt](https://example.com/image.jpg)", TextType.IMAGE),
+            TextNode(".")
+        ]
+        self.assertEqual(result, expected)
+
+    def test_text_with_unclosed_bold_delimiter(self):
+        # Test case with missing closing delimiter for bold text
+        with self.assertRaises(Exception) as context:
+            text_to_textnodes("This is **bold text without closing.")
+        self.assertIn("Invalid markdown syntax", str(context.exception))
+
 
 if __name__ == '__main__':
     unittest.main()
