@@ -30,3 +30,16 @@ def extract_markdown_images(text):
 #function to covert raw markdown text to a list of tuples. Each tuple contains the alt text and url of markdown links.
 def extract_markdown_links(text):
     return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+#function to split image nodes
+def split_nodes_image(old_nodes):
+    pass
+
+#function to split link nodes
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        if len(extract_markdown_links(node)) == 0:
+            new_nodes.append(node)
+        else:
+           
