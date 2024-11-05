@@ -401,6 +401,149 @@ class TestFuncs(unittest.TestCase):
             text_to_textnodes("This is **bold text without closing.")
         self.assertIn("Invalid markdown syntax", str(context.exception))
 
+    def test_basic_markdown(self):
+        """Test markdown with heading, paragraph, and list."""
+        markdown = """# Heading
+
+This is a paragraph with **bold** and *italic* text.
+
+* Item 1
+* Item 2"""
+        expected = [
+            "# Heading",
+            "This is a paragraph with **bold** and *italic* text.",
+            "* Item 1\n* Item 2"
+        ]
+        result = markdown_to_blocks(markdown)
+        self.assertEqual(result, expected)
+    
+    def test_empty_input(self):
+        """Test empty input raises an exception."""
+        with self.assertRaises(Exception) as context:
+            markdown_to_blocks("")
+        self.assertEqual(str(context.exception), "<----------Empty document inputted---------->")
+    
+    def test_only_newlines(self):
+        """Test input containing only newlines."""
+        markdown = "\n\n\n"
+        expected = []
+        result = markdown_to_blocks(markdown)
+        self.assertEqual(result, expected)
+    
+    def test_multiple_empty_blocks(self):
+        """Test markdown with multiple empty blocks."""
+        markdown = """# Heading
+
+
+This is a paragraph.
+
+
+* List item 1
+* List item 2"""
+        expected = [
+            "# Heading",
+            "This is a paragraph.",
+            "* List item 1\n* List item 2"
+        ]
+        result = markdown_to_blocks(markdown)
+        self.assertEqual(result, expected)
+    
+    def test_leading_and_trailing_spaces(self):
+        """Test blocks with leading and trailing spaces."""
+        markdown = """   # Heading    
+
+   This is a paragraph with spaces.   
+
+* Item 1  
+* Item 2"""
+        expected = [
+            "# Heading",
+            "This is a paragraph with spaces.",
+            "* Item 1  \n* Item 2"
+        ]
+        result = markdown_to_blocks(markdown)
+        self.assertEqual(result, expected)
+    
+    def test_single_block_no_double_newlines(self):
+        """Test markdown with a single block and no double newlines."""
+        markdown = "This is a single block without double newlines."
+        expected = ["This is a single block without double newlines."]
+        result = markdown_to_blocks(markdown)
+        self.assertEqual(result, expected)
+    
+    def test_mixed_content(self):
+        """Test markdown with mixed content types, including headings and lists."""
+        markdown = """# Heading
+
+Paragraph with **bold** text.
+
+# Another Heading
+
+Another paragraph with *italic* text.
+
+* List item 1
+* List item 2"""
+        expected = [
+            "# Heading",
+            "Paragraph with **bold** text.",
+            "# Another Heading",
+            "Another paragraph with *italic* text.",
+            "* List item 1\n* List item 2"
+        ]
+        result = markdown_to_blocks(markdown)
+        self.assertEqual(result, expected)
+    
+    def test_trailing_newlines(self):
+        """Test markdown with trailing newlines after the last block."""
+        markdown = """# Heading
+
+Paragraph.
+
+* List item 1
+* List item 2
+
+
+"""
+        expected = [
+            "# Heading",
+            "Paragraph.",
+            "* List item 1\n* List item 2"
+        ]
+        result = markdown_to_blocks(markdown)
+        self.assertEqual(result, expected)
+    
+    def test_unicode_characters(self):
+        """Test markdown with Unicode characters."""
+        markdown = """# Heading 🎉
+
+Paragraph with emojis 🚀 and symbols ©.
+
+* Emoji 😊
+* Another item"""
+        expected = [
+            "# Heading 🎉",
+            "Paragraph with emojis 🚀 and symbols ©.",
+            "* Emoji 😊\n* Another item"
+        ]
+        result = markdown_to_blocks(markdown)
+        self.assertEqual(result, expected)
+    
+    def test_markdown_with_links_and_images(self):
+        """Test markdown containing links and images."""
+        markdown = """# Heading
+
+This is a paragraph with a [link](https://example.com) and an image ![alt text](https://example.com/image.jpg).
+
+* List with [link](https://example.org)
+* List with image ![image](https://example.org/image.png)"""
+        expected = [
+            "# Heading",
+            "This is a paragraph with a [link](https://example.com) and an image ![alt text](https://example.com/image.jpg).",
+            "* List with [link](https://example.org)\n* List with image ![image](https://example.org/image.png)"
+        ]
+        result = markdown_to_blocks(markdown)
+        self.assertEqual(result, expected)
+
 
 if __name__ == '__main__':
     unittest.main()

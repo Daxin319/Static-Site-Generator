@@ -86,3 +86,18 @@ def text_to_textnodes(text):
     bold = split_nodes_delimiter(code, '**', TextType.BOLD)
     italic = split_nodes_delimiter(bold, '*', TextType.ITALIC)
     return italic
+
+
+# This function converts raw markdown text into blocks. Input raw markdown string and output list of block strings.
+def markdown_to_blocks(markdown):
+    if markdown:
+        nline_split = markdown.split('\n\n')
+        new_list = []
+        for line in nline_split:
+            if len(line) == 0 or line == "\n":
+                pass
+            stripped_line = line.strip(' \n')
+            if len(stripped_line) != 0:
+                new_list.append(stripped_line)
+        return new_list
+    raise Exception("<----------Empty document inputted---------->")
