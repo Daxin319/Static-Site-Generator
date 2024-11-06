@@ -190,9 +190,3 @@ def text_to_children(text):
         new_node = textnode_to_htmlnode(node)
         html_nodes.append(new_node)
     return html_nodes
-
-
-test_text = "This is a [link](http://example.com) and this is **bold with a [second link](http://test.com)**"
-test_node = TextNode(test_text, TextType.BOLD)
-result = split_nodes_link([test_node])
-print("Test results:", [(node.text, node.text_type) for node in result])
