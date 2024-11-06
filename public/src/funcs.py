@@ -39,16 +39,15 @@ def split_nodes_image(old_nodes):
         if len(list) == 0:
             new_nodes.append(node)
         else:
-            for item in list:
-                alt_text = item[0]
-                url = item[1]
+            for alt_text, url in list:
                 if len(alt_text) == 0:
                     raise Exception('<----------------Alt Text is empty---------------->')
                 if len(url) == 0:
                     raise Exception('<----------------No URL Detected---------------->')
                 split_text = node.text.split(f'![{alt_text}]({url})', 1)
-                new_nodes.append(TextNode(split_text[0]))
-                new_nodes.append(TextNode(f'![{alt_text}]({url})', TextType.IMAGE))
+                if split_text[0]:
+                    new_nodes.append(TextNode(split_text[0], node.text_type))
+                new_nodes.append(TextNode(alt_text, TextType.IMAGE, url))
                 node.text = split_text[1]
             if len(node.text) != 0:
                 new_nodes.append(TextNode(node.text)) 
@@ -62,30 +61,29 @@ def split_nodes_link(old_nodes):
         if len(list) == 0:
             new_nodes.append(node)
         else:
-            for item in list:
-                link = item[0]
-                url = item[1]
-                if len(link) == 0:
+            for link_text, url in list:
+                if len(link_text) == 0:
                     raise Exception('<----------------Link is empty---------------->')
                 if len(url) == 0:
                     raise Exception('<----------------No URL Detected---------------->')
-                split_text = node.text.split(f'[{link}]({url})', 1)
-                new_nodes.append(TextNode(split_text[0]))
-                new_nodes.append(TextNode(f'[{link}]({url})', TextType.LINK))
+                split_text = node.text.split(f'[{link_text}]({url})', 1)
+                if split_text[0]:
+                    new_nodes.append(TextNode(split_text[0], node.text_type))
+                new_nodes.append(TextNode(link_text, TextType.LINK, url))
                 node.text = split_text[1]
             if len(node.text) != 0:
-                new_nodes.append(TextNode(node.text))        
+                new_nodes.append(TextNode(node.text, node.text_type))        
     return new_nodes
 
 # This function takes raw markdown text and converts it into a list of textnodes
 def text_to_textnodes(text):
     node = TextNode(text)
-    links = split_nodes_link([node])
-    images = split_nodes_image(links)
-    code = split_nodes_delimiter(images, '`', TextType.CODE)
+    code = split_nodes_delimiter([node], '`', TextType.CODE)
     bold = split_nodes_delimiter(code, '**', TextType.BOLD)
     italic = split_nodes_delimiter(bold, '*', TextType.ITALIC)
-    return italic
+    images = split_nodes_image(italic)
+    links = split_nodes_link(images)
+    return links
 
 
 # This function converts raw markdown text into blocks. Input raw markdown string and output list of block strings.
@@ -131,3 +129,70 @@ def block_to_block_type(markdown):
                 current_index += 1
         return "ordered_list"
     return "paragraph"
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    block_nodes = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        match block_type:
+            case "heading":
+                matching = re.match(r"(^#{1,6})", block)
+                group = matching.group(1)
+                num = len(group)
+                stripped = block.lstrip("# ")
+                converted = text_to_children(stripped)
+                node = HTMLNode(f"h{num}", None, converted)
+                block_nodes.append(node)
+            case "code":
+                stripped = block.lstrip("`\n ").rstrip("`\n ")
+                child_node = HTMLNode("code", stripped)
+                node = HTMLNode("pre", None, [child_node])
+                block_nodes.append(node)
+            case "quote":
+                stripped = block.lstrip("> ")
+                converted = text_to_children(stripped)
+                node = HTMLNode("blockquote", None, converted)
+                block_nodes.append(node)
+            case "unordered_list":
+                list_items = []
+                split_block = block.split("\n")
+                for item in split_block:
+                    stripped = item.lstrip("*- ")
+                    converted = text_to_children(stripped)
+                    node = HTMLNode("li", None, converted)
+                    list_items.append(node)
+                parent_node = HTMLNode("ul", None, list_items)
+                block_nodes.append(parent_node)
+            case "ordered_list":
+                list_items = []
+                split_block = block.split("\n")
+                for item in split_block:
+                    match = re.match(r"^(\d+\.\s+)", item)
+                    num = match.group(1)
+                    stripped = item.lstrip(num)
+                    converted = text_to_children(stripped)
+                    node = HTMLNode("li", None, converted)
+                    list_items.append(node)
+                parent_node = HTMLNode("ol", None, list_items)
+                block_nodes.append(parent_node)
+            case "paragraph":
+                converted = text_to_children(block)
+                node = HTMLNode("p", None, converted)
+                block_nodes.append(node)
+    return HTMLNode("div", None, block_nodes)
+
+
+def text_to_children(text):
+    text_nodes = text_to_textnodes(text)
+    html_nodes = []
+    for node in text_nodes:
+        new_node = textnode_to_htmlnode(node)
+        html_nodes.append(new_node)
+    return html_nodes
+
+
+test_text = "This is a [link](http://example.com) and this is **bold with a [second link](http://test.com)**"
+test_node = TextNode(test_text, TextType.BOLD)
+result = split_nodes_link([test_node])
+print("Test results:", [(node.text, node.text_type) for node in result])

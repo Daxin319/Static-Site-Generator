@@ -213,7 +213,7 @@ class TestFuncs(unittest.TestCase):
         
         expected = [
             TextNode("Here is an image "),
-            TextNode("![alt text](https://example.com/image.jpg)", TextType.IMAGE)
+            TextNode("alt text", TextType.IMAGE, "https://example.com/image.jpg")
         ]
         self.assertEqual(result, expected)
 
@@ -224,9 +224,9 @@ class TestFuncs(unittest.TestCase):
         
         expected = [
             TextNode("Image one "),
-            TextNode("![img1](https://example.com/1.jpg)", TextType.IMAGE),
+            TextNode("img1", TextType.IMAGE, "https://example.com/1.jpg"),
             TextNode(" and image two "),
-            TextNode("![img2](https://example.com/2.jpg)", TextType.IMAGE)
+            TextNode("img2", TextType.IMAGE, "https://example.com/2.jpg")
         ]
         self.assertEqual(result, expected)
 
@@ -241,28 +241,25 @@ class TestFuncs(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_split_nodes_link_single_link(self):
-        # Test a single link within a node
-        nodes = [TextNode("This is a [link](https://example.com).")]
-        result = split_nodes_link(nodes)
-        
+        input_nodes = [TextNode("This is a [link](https://example.com).")]
         expected = [
-            TextNode("This is a "),
-            TextNode("[link](https://example.com)", TextType.LINK),
-            TextNode(".")
+            TextNode("This is a ", TextType.TEXT, None),
+            TextNode("link", TextType.LINK, "https://example.com"),
+            TextNode(".", TextType.TEXT, None)
         ]
+        result = split_nodes_link(input_nodes)
         self.assertEqual(result, expected)
 
     def test_split_nodes_link_multiple_links(self):
-        # Test multiple links within a node
-        nodes = [TextNode("First [link1](https://example.com/1) and second [link2](https://example.com/2)")]
-        result = split_nodes_link(nodes)
-        
+        input_nodes = [TextNode("First [link1](https://example.com/1) and second [link2](https://example.com/2).")]
         expected = [
-            TextNode("First "),
-            TextNode("[link1](https://example.com/1)", TextType.LINK),
-            TextNode(" and second "),
-            TextNode("[link2](https://example.com/2)", TextType.LINK)
+            TextNode("First ", TextType.TEXT, None),
+            TextNode("link1", TextType.LINK, "https://example.com/1"),
+            TextNode(" and second ", TextType.TEXT, None),
+            TextNode("link2", TextType.LINK, "https://example.com/2"),
+            TextNode(".", TextType.TEXT, None)
         ]
+        result = split_nodes_link(input_nodes)
         self.assertEqual(result, expected)
 
     def test_split_nodes_link_no_links(self):
@@ -276,20 +273,18 @@ class TestFuncs(unittest.TestCase):
         self.assertEqual(result, expected)
     
     def test_split_nodes_image_and_link_combined(self):
-        # Test node with both images and links
-        nodes = [TextNode("Here is an image ![img](https://example.com/image.jpg) and a [link](https://example.com).")]
-        
-        result_images = split_nodes_image(nodes)
-        result_links = split_nodes_link(result_images)
-        
-        expected = [
-            TextNode("Here is an image "),
-            TextNode("![img](https://example.com/image.jpg)", TextType.IMAGE),
-            TextNode(" and a "),
-            TextNode("[link](https://example.com)", TextType.LINK),
-            TextNode(".")
+        input_nodes = [
+            TextNode("Here is an image ![img](https://example.com/image.jpg) and a [link](https://example.com).")
         ]
-        self.assertEqual(result_links, expected)
+        expected = [
+            TextNode("Here is an image ", TextType.TEXT, None),
+            TextNode("img", TextType.IMAGE, "https://example.com/image.jpg"),
+            TextNode(" and a ", TextType.TEXT, None),
+            TextNode("link", TextType.LINK, "https://example.com"),
+            TextNode(".", TextType.TEXT, None)
+        ]
+        result = split_nodes_link(split_nodes_image(input_nodes))
+        self.assertEqual(result, expected)
 
     def test_split_nodes_image_empty_alt_text_exception(self):
         # Test image with an empty alt text should raise an exception
@@ -336,13 +331,13 @@ class TestFuncs(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_text_with_single_link(self):
-        # Test text with a single markdown link
-        result = text_to_textnodes("Here is a [link](https://example.com).")
+        input_nodes = [TextNode("Here is a [link](https://example.com).")]
         expected = [
-            TextNode("Here is a "),
-            TextNode("[link](https://example.com)", TextType.LINK),
-            TextNode(".")
+            TextNode("Here is a ", TextType.TEXT, None),
+            TextNode("link", TextType.LINK, "https://example.com"),
+            TextNode(".", TextType.TEXT, None)
         ]
+        result = split_nodes_link(input_nodes)
         self.assertEqual(result, expected)
 
     def test_text_with_single_image(self):
@@ -350,7 +345,7 @@ class TestFuncs(unittest.TestCase):
         result = text_to_textnodes("Here is an image ![alt](https://example.com/image.jpg).")
         expected = [
             TextNode("Here is an image "),
-            TextNode("![alt](https://example.com/image.jpg)", TextType.IMAGE),
+            TextNode("alt", TextType.IMAGE, "https://example.com/image.jpg"),
             TextNode(".")
         ]
         self.assertEqual(result, expected)
@@ -378,21 +373,19 @@ class TestFuncs(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_text_with_multiple_formatting_no_nesting(self):
-        # Test text with multiple formats, no nesting
-        result = text_to_textnodes("This includes **bold**, *italic*, `code`, [link](https://example.com), and an image ![alt](https://example.com/image.jpg).")
+        input_text = "This includes **bold**, *italic*, `code`, and a [link](https://example.com)."
         expected = [
-            TextNode("This includes "),
-            TextNode("bold", TextType.BOLD),
-            TextNode(", "),
-            TextNode("italic", TextType.ITALIC),
-            TextNode(", "),
-            TextNode("code", TextType.CODE),
-            TextNode(", "),
-            TextNode("[link](https://example.com)", TextType.LINK),
-            TextNode(", and an image "),
-            TextNode("![alt](https://example.com/image.jpg)", TextType.IMAGE),
-            TextNode(".")
+            TextNode("This includes ", TextType.TEXT, None),
+            TextNode("bold", TextType.BOLD, None),
+            TextNode(", ", TextType.TEXT, None),
+            TextNode("italic", TextType.ITALIC, None),
+            TextNode(", ", TextType.TEXT, None),
+            TextNode("code", TextType.CODE, None),
+            TextNode(", and a ", TextType.TEXT, None),
+            TextNode("link", TextType.LINK, "https://example.com"),
+            TextNode(".", TextType.TEXT, None)
         ]
+        result = text_to_textnodes(input_text)
         self.assertEqual(result, expected)
 
     def test_text_with_unclosed_bold_delimiter(self):
@@ -577,6 +570,103 @@ This is a paragraph with a [link](https://example.com) and an image ![alt text](
         self.assertEqual(block_to_block_type("This is a regular paragraph of text."), "paragraph")
         self.assertEqual(block_to_block_type("No special formatting here.\nJust a normal block of text."), "paragraph")
 
+    def test_heading_conversion(self):
+        result = markdown_to_html_node("# Heading 1")
+        expected = HTMLNode("div", None, [HTMLNode("h1", None, [LeafNode(None, "Heading 1")])])
+        self.assertEqual(result, expected)
+
+        result = markdown_to_html_node("### Heading 3")
+        expected = HTMLNode("div", None, [HTMLNode("h3", None, [LeafNode(None, "Heading 3")])])
+        self.assertEqual(result, expected)
+
+    def test_paragraph_conversion(self):
+        result = markdown_to_html_node("This is a paragraph.")
+        expected = HTMLNode("div", None, [HTMLNode("p", None, [LeafNode(None, "This is a paragraph.")])])
+        self.assertEqual(result, expected)
+
+    def test_code_block_conversion(self):
+        result = markdown_to_html_node("```\nprint('Hello')\n```")
+        expected = HTMLNode("div", None, [HTMLNode("pre", None, [LeafNode("code", "print('Hello')")])])
+        self.assertEqual(result, expected)
+
+    def test_quote_block_conversion(self):
+        result = markdown_to_html_node("> This is a quote.")
+        expected = HTMLNode("div", None, [HTMLNode("blockquote", None, [LeafNode(None, "This is a quote.")])])
+        self.assertEqual(result, expected)
+
+    def test_unordered_list_conversion(self):
+        markdown = "* Item 1\n* Item 2\n* Item 3"
+        result = markdown_to_html_node(markdown)
+        expected = HTMLNode("div", None, [
+            HTMLNode("ul", None, [
+                HTMLNode("li", None, [LeafNode(None, "Item 1")]),
+                HTMLNode("li", None, [LeafNode(None, "Item 2")]),
+                HTMLNode("li", None, [LeafNode(None, "Item 3")])
+            ])
+        ])
+        self.assertEqual(result, expected)
+
+    def test_ordered_list_conversion(self):
+        markdown = "1. First item\n2. Second item\n3. Third item"
+        result = markdown_to_html_node(markdown)
+        expected = HTMLNode("div", None, [
+            HTMLNode("ol", None, [
+                HTMLNode("li", None, [LeafNode(None, "First item")]),
+                HTMLNode("li", None, [LeafNode(None, "Second item")]),
+                HTMLNode("li", None, [LeafNode(None, "Third item")])
+            ])
+        ])
+        self.assertEqual(result, expected)
+
+    def test_combination_of_blocks(self):
+        markdown = "# Heading\n\nThis is a paragraph.\n\n> A quote.\n\n* List item 1\n* List item 2"
+        result = markdown_to_html_node(markdown)
+        expected = HTMLNode("div", None, [
+            HTMLNode("h1", None, [LeafNode(None, "Heading")]),
+            HTMLNode("p", None, [LeafNode(None, "This is a paragraph.")]),
+            HTMLNode("blockquote", None, [LeafNode(None, "A quote.")]),
+            HTMLNode("ul", None, [
+                HTMLNode("li", None, [LeafNode(None, "List item 1")]),
+                HTMLNode("li", None, [LeafNode(None, "List item 2")])
+            ])
+        ])
+        self.assertEqual(result, expected)
+
+    def test_text_formatting(self):
+        markdown = "This text is **bold** and *italic* with `code`."
+        result = markdown_to_html_node(markdown)
+        expected = HTMLNode("div", None, [
+            HTMLNode("p", None, [
+                LeafNode(None, "This text is "),
+                LeafNode("b", "bold"),
+                LeafNode(None, " and "),
+                LeafNode("i", "italic"),
+                LeafNode(None, " with "),
+                LeafNode("code", "code"),
+                LeafNode(None, ".")
+            ])
+        ])
+        self.assertEqual(result, expected)
+
+    def test_mixed_inline_elements(self):
+        input_text = "This includes **bold** text, *italic* text, `code`, a [link](https://example.com), and an image ![alt](https://example.com/image.jpg)."
+        expected = [
+            TextNode("This includes ", TextType.TEXT, None),
+            TextNode("bold", TextType.BOLD, None),
+            TextNode(" text, ", TextType.TEXT, None),
+            TextNode("italic", TextType.ITALIC, None),
+            TextNode(" text, ", TextType.TEXT, None),
+            TextNode("code", TextType.CODE, None),
+            TextNode(", a ", TextType.TEXT, None),
+            TextNode("link", TextType.LINK, "https://example.com"),
+            TextNode(", and an image ", TextType.TEXT, None),
+            TextNode("alt", TextType.IMAGE, "https://example.com/image.jpg"),
+            TextNode(".", TextType.TEXT, None)
+        ]
+        result = text_to_textnodes(input_text)
+        self.assertEqual(result, expected)
         
+
+
 if __name__ == '__main__':
     unittest.main()
