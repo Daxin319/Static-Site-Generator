@@ -186,7 +186,7 @@ def markdown_to_html_node(markdown):
                 node = HTMLNode("pre", None, [child_node])
                 block_nodes.append(node)
             case "quote":
-                stripped = block.lstrip("> ")
+                stripped = block.replace("> ", "")
                 converted = text_to_children(stripped)
                 node = HTMLNode("blockquote", None, converted)
                 block_nodes.append(node)
@@ -272,11 +272,9 @@ def generate_page(from_path, template_path, dest_path):
     with open(template_path, 'r', encoding="utf-8") as template:
         template_string = template.read()
         replaced_template = template_string.replace("{{ Title }}", title).replace("{{ Content }}", content_string)
-        print(replaced_template)
 
     with open(dest_path, 'w', encoding="utf-8") as result:
         result.write(replaced_template)
-        print(result)
 
 def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
     
@@ -291,3 +289,5 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             generate_page(src_path, template_path, dest_file_path)
         if os.path.isdir(src_path):
             generate_pages_recursive(src_path, template_path, dest_path)
+
+    
