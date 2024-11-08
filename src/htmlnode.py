@@ -34,3 +34,21 @@ class HTMLNode():
         if self.props:
             parts.append(repr(self.props))
         return f'HTMLNode({", ".join(parts)})'
+    
+    #function to convert node to html format
+    def to_html(self):
+        if not self.tag:
+            return str(self.value)
+    
+        props_string = self.props_to_html() if self.props else ""
+    
+        if self.tag == "img":
+            return f"<{self.tag}{props_string} />"
+    
+        children_html = ""
+        if self.children:
+            for child in self.children:
+                children_html += child.to_html()
+    
+        value_string = str(self.value) if self.value is not None else ""
+        return f"<{self.tag}{props_string}>{value_string}{children_html}</{self.tag}>"

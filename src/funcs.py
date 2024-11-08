@@ -91,22 +91,53 @@ def text_to_textnodes(text):
 
 # This function converts raw markdown text into blocks. Input raw markdown string and output list of block strings.
 def markdown_to_blocks(markdown):
-    if markdown:
-        nline_split = markdown.split('\n\n')
-        new_list = []
-        for line in nline_split:
-            if len(line) == 0 or line == "\n":
-                pass
-            stripped_line = line.strip(' \n')
-            if len(stripped_line) != 0:
-                new_list.append(stripped_line)
-        return new_list
-    raise Exception("<----------Empty document inputted---------->")
+    if not markdown:
+        raise Exception("<----------Empty document inputted---------->")
+    
+    lines = markdown.split('\n')
+    blocks = []
+    current_block = []
+    in_code_block = False
+    
+    for line in lines:
+        # Check for code fence
+        if line.strip().startswith('```'):
+            if not in_code_block:
+                # Starting a new code block
+                in_code_block = True
+                current_block = [line]
+            else:
+                # Ending a code block
+                current_block.append(line)
+                blocks.append('\n'.join(current_block))
+                current_block = []
+                in_code_block = False
+            continue
+            
+        if in_code_block:
+            # If we're in a code block, add all lines
+            current_block.append(line)
+        else:
+            # Normal block processing
+            if line.strip():
+                current_block.append(line.strip())
+            elif current_block:
+                blocks.append('\n'.join(current_block).strip())
+                current_block = []
+    
+    # Don't forget any remaining content
+    if current_block:
+        if in_code_block:
+            blocks.append('\n'.join(current_block))
+        else:
+            blocks.append('\n'.join(current_block).strip())
+    
+    return blocks
 
 # This funciton takes an input of a single block of markdown text and returns a string describing  the type of block it is
 def block_to_block_type(markdown):
     is_heading = re.search(r"^#{1,6}\s", markdown)
-    is_code = re.search(r"(^`{3})[\s\S]*(`{3}$)", markdown)
+    is_code = re.search(r"^```[\s\S]*```$", markdown, re.MULTILINE)
     is_quote = re.search(r"^>", markdown, flags= re.MULTILINE)
     is_unordered_list1 = re.search(r"^\*\s", markdown, flags= re.MULTILINE)
     is_unordered_list2 = re.search(r"^-\s", markdown, flags= re.MULTILINE)
@@ -148,8 +179,10 @@ def markdown_to_html_node(markdown):
                 node = HTMLNode(f"h{num}", None, converted)
                 block_nodes.append(node)
             case "code":
-                stripped = block.lstrip("`\n ").rstrip("`\n ")
-                child_node = HTMLNode("code", stripped)
+                stripped = block.replace('```', '').strip()
+                content = stripped.split('\n')
+                code_content = '\n'.join(content)
+                child_node = HTMLNode("code", code_content)
                 node = HTMLNode("pre", None, [child_node])
                 block_nodes.append(node)
             case "quote":
@@ -214,3 +247,32 @@ def transfer_helper(source, destination):
                 os.mkdir(dst_path)
             transfer_helper(src_path, dst_path)
         pass
+
+def extract_title(markdown):
+    split_file = markdown.split("\n")
+    for line in split_file:
+        if line.startswith("# "):
+            stripped = line.lstrip("# ").rstrip(" ")
+            return stripped
+    raise Exception("<----------No H1 Heading Found---------->")
+
+def generate_page(from_path, template_path, dest_path):
+    print(f"<------------------------------------Generating page from {from_path} to {dest_path} using template from {template_path}------------------------------------>")
+    
+    dst_dir = os.path.dirname(dest_path)
+
+    if not os.path.exists(dst_dir):
+        os.makedirs(dst_dir)
+
+    with open(from_path, 'r', encoding="utf-8") as file:
+        file_string = file.read()
+        html_node = markdown_to_html_node(file_string)
+        title = extract_title(file_string)
+        content_string = html_node.to_html()
+        
+    with open(template_path, 'r', encoding="utf-8") as template:
+        template_string = template.read()
+        replaced_template = template_string.replace("{{ Title }}", title).replace("{{ Content }}", content_string)
+
+    with open(dest_path, 'w', encoding="utf-8") as result:
+        result.write(replaced_template)

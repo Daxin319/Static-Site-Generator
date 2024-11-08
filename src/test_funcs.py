@@ -452,7 +452,7 @@ This is a paragraph.
         expected = [
             "# Heading",
             "This is a paragraph with spaces.",
-            "* Item 1  \n* Item 2"
+            "* Item 1\n* Item 2"
         ]
         result = markdown_to_blocks(markdown)
         self.assertEqual(result, expected)
@@ -666,6 +666,55 @@ This is a paragraph with a [link](https://example.com) and an image ![alt text](
         result = text_to_textnodes(input_text)
         self.assertEqual(result, expected)
         
+    def test_valid_h1_heading(self):
+        markdown = "# This is a Title\nSome other text."
+        expected = "This is a Title"
+        result = extract_title(markdown)
+        self.assertEqual(result, expected)
+
+    def test_no_h1_heading(self):
+        markdown = "This is some text without an H1 heading."
+        with self.assertRaises(Exception) as context:
+            extract_title(markdown)
+        self.assertEqual(str(context.exception), "<----------No H1 Heading Found---------->")
+
+    def test_h1_with_leading_and_trailing_whitespace(self):
+        markdown = "#    Title with Spaces    \nAnother line of text."
+        expected = "Title with Spaces"
+        result = extract_title(markdown)
+        self.assertEqual(result, expected)
+
+    def test_h1_heading_in_middle_of_text(self):
+        markdown = "Intro text\n# Middle Heading\nMore text below."
+        expected = "Middle Heading"
+        result = extract_title(markdown)
+        self.assertEqual(result, expected)
+
+    def test_multiple_h1_headings(self):
+        markdown = "# First Title\nSome text.\n# Second Title"
+        expected = "First Title"  # Only the first H1 should be extracted.
+        result = extract_title(markdown)
+        self.assertEqual(result, expected)
+
+    def test_h1_heading_with_special_characters(self):
+        markdown = "# Title with !@#$%^&*() Special Characters"
+        expected = "Title with !@#$%^&*() Special Characters"
+        result = extract_title(markdown)
+        self.assertEqual(result, expected)
+
+    def test_empty_input(self):
+        markdown = ""
+        with self.assertRaises(Exception) as context:
+            extract_title(markdown)
+        self.assertEqual(str(context.exception), "<----------No H1 Heading Found---------->")
+
+    def test_h1_heading_but_not_first_line(self):
+        markdown = "Some text\n\n# Actual Title\nMore content."
+        expected = "Actual Title"
+        result = extract_title(markdown)
+        self.assertEqual(result, expected)
+
+
 
 
 if __name__ == '__main__':
