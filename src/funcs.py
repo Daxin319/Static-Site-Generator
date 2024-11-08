@@ -1,5 +1,8 @@
-from textnode import *
 import re
+import os
+import shutil
+from textnode import *
+
 
 
 # function to convert raw markdown to list of TextNodes, takes list as input.        
@@ -190,3 +193,24 @@ def text_to_children(text):
         new_node = textnode_to_htmlnode(node)
         html_nodes.append(new_node)
     return html_nodes
+
+
+# Function to transfer files from one location to another. written recursively as practice, I know I could just use shutil.copytree
+def file_transfer(source, destination):
+    if os.path.exists(destination):
+        shutil.rmtree(destination)
+    os.mkdir(destination)
+    transfer_helper(source, destination)
+
+def transfer_helper(source, destination):
+    file_list = os.listdir(source)
+    for item in file_list:
+        src_path = f"{source}/{item}"
+        dst_path = f"{destination}/{item}"
+        if os.path.isfile(src_path):
+            shutil.copy(src_path, dst_path)
+        elif os.path.isdir(src_path):
+            if not os.path.exists(dst_path):
+                os.mkdir(dst_path)
+            transfer_helper(src_path, dst_path)
+        pass

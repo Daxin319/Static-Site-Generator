@@ -1,15 +1,12 @@
+from funcs import *
 from textnode import *
 from parentnode import *
 from leafnode import *
 
 def main():
-    link_node = TextNode("Click me!", TextType.LINK, "https://www.boot.dev")
-    image_node = TextNode("Alt text", TextType.IMAGE, "https://example.com/image.png")
+    file_transfer("/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/static", "/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/public")
 
-    link_html = textnode_to_htmlnode(link_node)
-    image_html = textnode_to_htmlnode(image_node)
 
-    print(repr(link_html))
-    print(repr(image_html))
+
 
 main()
