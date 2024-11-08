@@ -194,7 +194,7 @@ def markdown_to_html_node(markdown):
                 list_items = []
                 split_block = block.split("\n")
                 for item in split_block:
-                    stripped = item.lstrip("*- ")
+                    stripped = item.lstrip('-*').lstrip()
                     converted = text_to_children(stripped)
                     node = HTMLNode("li", None, converted)
                     list_items.append(node)
@@ -238,15 +238,14 @@ def file_transfer(source, destination):
 def transfer_helper(source, destination):
     file_list = os.listdir(source)
     for item in file_list:
-        src_path = f"{source}/{item}"
-        dst_path = f"{destination}/{item}"
+        src_path = os.path.join(source, item)
+        dst_path = os.path.join(destination, item)
         if os.path.isfile(src_path):
             shutil.copy(src_path, dst_path)
         elif os.path.isdir(src_path):
             if not os.path.exists(dst_path):
                 os.mkdir(dst_path)
             transfer_helper(src_path, dst_path)
-        pass
 
 def extract_title(markdown):
     split_file = markdown.split("\n")
@@ -273,6 +272,22 @@ def generate_page(from_path, template_path, dest_path):
     with open(template_path, 'r', encoding="utf-8") as template:
         template_string = template.read()
         replaced_template = template_string.replace("{{ Title }}", title).replace("{{ Content }}", content_string)
+        print(replaced_template)
 
     with open(dest_path, 'w', encoding="utf-8") as result:
         result.write(replaced_template)
+        print(result)
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    
+    dir_list = os.listdir(dir_path_content)
+    for item in dir_list:
+        base_name, _ = os.path.splitext(item)
+        src_path = os.path.join(dir_path_content, item)
+        dest_path = os.path.join(dest_dir_path, item)
+        dest_file_path = os.path.join(dest_dir_path, base_name + '.html')
+
+        if os.path.isfile(src_path):
+            generate_page(src_path, template_path, dest_file_path)
+        if os.path.isdir(src_path):
+            generate_pages_recursive(src_path, template_path, dest_path)
