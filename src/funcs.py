@@ -232,7 +232,7 @@ def text_to_children(text):
 def file_transfer(source, destination):
     if os.path.exists(destination):
         shutil.rmtree(destination)
-    os.mkdir(destination)
+    os.makedirs(destination)
     transfer_helper(source, destination)
 
 def transfer_helper(source, destination):
@@ -244,7 +244,7 @@ def transfer_helper(source, destination):
             shutil.copy(src_path, dst_path)
         elif os.path.isdir(src_path):
             if not os.path.exists(dst_path):
-                os.mkdir(dst_path)
+                os.makedirs(dst_path)
             transfer_helper(src_path, dst_path)
 
 def extract_title(markdown):
@@ -278,6 +278,9 @@ def generate_page(from_path, template_path, dest_path):
 
 def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
     
+    if not os.path.exists(dest_dir_path):
+        os.makedirs(dest_dir_path)
+
     dir_list = os.listdir(dir_path_content)
     for item in dir_list:
         base_name, _ = os.path.splitext(item)
