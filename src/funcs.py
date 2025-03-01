@@ -186,8 +186,14 @@ def markdown_to_html_node(markdown):
                 node = HTMLNode("pre", None, [child_node])
                 block_nodes.append(node)
             case "quote":
-                stripped = block.replace(">", "")
-                converted = text_to_children(stripped.lstrip())
+                lines = block.split("\n")
+                cleaned_lines = []
+                for line in lines:
+                    cleaned_line = line[1:].lstrip()
+                    if cleaned_line:
+                        cleaned_lines.append(cleaned_line)
+                joined = " ".join(cleaned_lines)
+                converted = text_to_children(joined)
                 node = HTMLNode("blockquote", None, converted)
                 block_nodes.append(node)
             case "unordered_list":
