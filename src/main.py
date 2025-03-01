@@ -3,7 +3,7 @@ import sys
 
 def main():
     if len(sys.argv) <= 2:
-        basepath = "/"
+        basepath = "/src/"
     else:
         basepath = sys.argv[2]
     print(basepath)
