@@ -255,9 +255,8 @@ def extract_title(markdown):
             return stripped
     raise Exception("<----------No H1 Heading Found---------->")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"<------------------------------------Generating page from {from_path} to {dest_path} using template from {template_path}------------------------------------>")
-    
     dst_dir = os.path.dirname(dest_path)
 
     if not os.path.exists(dst_dir):
@@ -268,16 +267,16 @@ def generate_page(from_path, template_path, dest_path):
         html_node = markdown_to_html_node(file_string)
         title = extract_title(file_string)
         content_string = html_node.to_html()
-        
+
     with open(template_path, 'r', encoding="utf-8") as template:
         template_string = template.read()
-        replaced_template = template_string.replace("{{ Title }}", title).replace("{{ Content }}", content_string)
+        replaced_Title = template_string.replace("{{ Title }}", title).replace("{{ Content }}", content_string)
+        replaced_template = replaced_Title.replace('href="/', f'href="{basepath}').replace('src="/', 'src="{basepath}')
 
     with open(dest_path, 'w', encoding="utf-8") as result:
         result.write(replaced_template)
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
-    
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     if not os.path.exists(dest_dir_path):
         os.makedirs(dest_dir_path)
 
@@ -289,8 +288,6 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
         dest_file_path = os.path.join(dest_dir_path, base_name + '.html')
 
         if os.path.isfile(src_path):
-            generate_page(src_path, template_path, dest_file_path)
+            generate_page(src_path, template_path, dest_file_path, basepath)
         if os.path.isdir(src_path):
-            generate_pages_recursive(src_path, template_path, dest_path)
-
-    
+            generate_pages_recursive(src_path, template_path, dest_path, basepath)

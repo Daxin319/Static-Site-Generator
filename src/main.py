@@ -1,9 +1,13 @@
 from funcs import *
-
+import sys
 
 def main():
-    file_transfer("/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/src/static", "/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/public")
-    generate_pages_recursive("/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/src/content", "/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/template.html", "/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/public")
+    if len(sys.argv) <= 2:
+        basepath = "/"
+    else:
+        basepath = sys.argv[2]
+    file_transfer("/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/src/static", "/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/docs")
+    generate_pages_recursive("/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/src/content", "/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/template.html", "/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/docs", basepath)
     print("<----------Generation Complete!---------->")
 
 
