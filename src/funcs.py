@@ -270,8 +270,8 @@ def generate_page(from_path, template_path, dest_path, basepath):
 
     with open(template_path, 'r', encoding="utf-8") as template:
         template_string = template.read()
-        replaced_Title = template_string.replace("{{ Title }}", title).replace("{{ Content }}", content_string)
-        replaced_template = replaced_Title.replace('href="/', 'href="' + basepath).replace('src="/', 'src="' + basepath)
+        template_string = template_string.replace("{{ Title }}", title).replace("{{ Content }}", content_string)
+        replaced_template = template_string.replace("href=\"/", "href=\"" + basepath).replace("src=\"/", "src=\"" + basepath)
 
     with open(dest_path, 'w', encoding="utf-8") as result:
         result.write(replaced_template)
