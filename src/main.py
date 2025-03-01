@@ -2,13 +2,11 @@ from funcs import *
 import sys
 
 def main():
-    if len(sys.argv) <= 2:
-        basepath = "/docs/"
-    else:
-        basepath = sys.argv[2]
-    print(basepath)
-    file_transfer("/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/src/static", "/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/docs")
-    generate_pages_recursive("/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/src/content", "/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/template.html", "/home/lyle/workspace/github.com/Daxin319/Static-Site-Generator/docs", basepath)
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
+
+    file_transfer("./src/static", "./docs")
+    generate_pages_recursive("./src/content", "./template.html", "./docs", basepath)
     print("<----------Generation Complete!---------->")
 
 
