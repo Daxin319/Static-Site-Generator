@@ -352,7 +352,7 @@ class TestFuncs(unittest.TestCase):
 
     def test_text_with_bold_and_italic(self):
         # Test text with bold and italic separately
-        result = text_to_textnodes("This is **bold** and *italic* text.")
+        result = text_to_textnodes("This is **bold** and _italic_ text.")
         expected = [
             TextNode("This is "),
             TextNode("bold", TextType.BOLD),
@@ -373,7 +373,7 @@ class TestFuncs(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_text_with_multiple_formatting_no_nesting(self):
-        input_text = "This includes **bold**, *italic*, `code`, and a [link](https://example.com)."
+        input_text = "This includes **bold**, _italic_, `code`, and a [link](https://example.com)."
         expected = [
             TextNode("This includes ", TextType.TEXT, None),
             TextNode("bold", TextType.BOLD, None),
@@ -633,7 +633,7 @@ This is a paragraph with a [link](https://example.com) and an image ![alt text](
         self.assertEqual(result, expected)
 
     def test_text_formatting(self):
-        markdown = "This text is **bold** and *italic* with `code`."
+        markdown = "This text is **bold** and _italic_ with `code`."
         result = markdown_to_html_node(markdown)
         expected = HTMLNode("div", None, [
             HTMLNode("p", None, [
@@ -649,7 +649,7 @@ This is a paragraph with a [link](https://example.com) and an image ![alt text](
         self.assertEqual(result, expected)
 
     def test_mixed_inline_elements(self):
-        input_text = "This includes **bold** text, *italic* text, `code`, a [link](https://example.com), and an image ![alt](https://example.com/image.jpg)."
+        input_text = "This includes **bold** text, _italic_ text, `code`, a [link](https://example.com), and an image ![alt](https://example.com/image.jpg)."
         expected = [
             TextNode("This includes ", TextType.TEXT, None),
             TextNode("bold", TextType.BOLD, None),
