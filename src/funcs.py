@@ -192,7 +192,7 @@ def markdown_to_html_node(markdown):
                     cleaned_line = line[1:].lstrip()
                     if cleaned_line:
                         cleaned_lines.append(cleaned_line)
-                joined = " ".join(cleaned_lines)
+                joined = "  ".join(cleaned_lines)
                 converted = text_to_children(joined)
                 node = HTMLNode("blockquote", None, converted)
                 block_nodes.append(node)
